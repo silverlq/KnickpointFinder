@@ -7,7 +7,7 @@ Software disponibilizado gratuitamente pelo grupo de Neotectônica da UFPR
 
 [Download KnickpointFinder](http://www.neotectonica.ufpr.br/2013/index.php/aplicativos/doc_download/87-knickpointfinder)
 
-[Nosso site](http://www.neotectonica.ufpr.br)
+[Site do Grupo](http://www.neotectonica.ufpr.br)
 
 Autores: Gustavo Lopes Queiroz, Eduardo Salamuni, Edenilson Roberto do Nascimento
 
