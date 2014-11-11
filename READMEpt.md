@@ -5,7 +5,9 @@ Código de um artigo da CAGEO
 
 Software disponibilizado gratuitamente pelo grupo de Neotectônica da UFPR
 
-www.neotectonica.ufpr.br
+[Download KnickpointFinder](http://www.neotectonica.ufpr.br/2013/index.php/aplicativos/doc_download/87-knickpointfinder)
+
+[Nosso site](http://www.neotectonica.ufpr.br)
 
 Autores: Gustavo Lopes Queiroz, Eduardo Salamuni, Edenilson Roberto do Nascimento
 
