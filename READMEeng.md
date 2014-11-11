@@ -5,7 +5,9 @@ Code for a CAGEO paper
 
 Software available for free by the Neotectonics group of UFPR
 
-www.neotectonica.ufpr.br
+[Download KnickpointFinder](http://www.neotectonica.ufpr.br/2013/index.php/aplicativos/doc_download/87-knickpointfinder)
+
+[Our website (portuguese)](www.neotectonica.ufpr.br)
 
 Authors: Gustavo Lopes Queiroz, Eduardo Salamuni, Edenilson Roberto do Nascimento
 
