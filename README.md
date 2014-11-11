@@ -1,7 +1,7 @@
 KnickpointFinder
 ================
 
-Code for a CAGEO paper
+This software is for morphometric analysis of drainage networks based on the methods of Hack (1973) and Etchebehere (2004). This tool is applicable to studies of morphotectonics and neotectonics. The software uses a digital elevation model (DEM) to identify the relief breakpoints along drainage profiles (knickpoints). The program was coded in Python for use on the ArcGIS platform and is called Knickpoint Finder.
 
 Software available for free by the Neotectonics group of UFPR
 
