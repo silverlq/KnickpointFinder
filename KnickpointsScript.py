@@ -73,8 +73,9 @@ try:
 
         gp.SetProgressorPosition(30)
         gp.AddMessage("Processing Con...")
+        gp.AddMessage(str(ConValor))
         SaidaCon = dirtemp + "//DrenCon"
-        gp.Con_sa(SaidaFlowAcc, "1", SaidaCon, "", "value > " + str(ConValor))
+        gp.Con_sa(SaidaFlowAcc, "1", SaidaCon, "", "Value > " + str(int(ConValor)))
 
         gp.SetProgressorPosition(40)
         gp.AddMessage("Processing Stream Order...")
