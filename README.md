@@ -5,7 +5,7 @@ This software is for morphometric analysis of drainage networks based on the met
 
 Software available for free by the Neotectonics group of UFPR
 
-[Download KnickpointFinder](http://www.neotectonica.ufpr.br/2013/index.php/aplicativos/doc_download/87-knickpointfinder)
+[Download KnickpointFinder](https://geovetor.guslq.com/files/KnickpointFinder.zip)
 
 [Our website (portuguese)](http://www.neotectonica.ufpr.br)
 
