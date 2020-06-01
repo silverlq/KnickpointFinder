@@ -387,6 +387,9 @@ try:
 
     # Delete temporary folder
     gp.delete_management(dirtemp, "")
-
+except arcpy.ExecuteError:
+    print(arcpy.GetMessages())
 except:
-    gp.AddError("Error! " + StrErro)    
+    e = sys.exc_info()[1]
+    arcpy.AddMessage(e.args[0])
+    gp.AddError("Error! " + StrErro)
