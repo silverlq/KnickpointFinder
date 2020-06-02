@@ -382,13 +382,11 @@ try:
     if gp.GetParameterAsText(5) == "true":
         gp.MakeFeatureLayer_management(gp.GetParameterAsText(3) + "\\" + gp.GetParameterAsText(6) + ".shp", gp.GetParameterAsText(6))
         gp.SetParameterAsText(8,gp.GetParameterAsText(3) + "\\" + gp.GetParameterAsText(6) + ".shp")
-    
+
     gp.AddMessage("Knickpoint Finder was successful.")
 
     # Delete temporary folder
     gp.delete_management(dirtemp, "")
-except arcpy.ExecuteError:
-    print(arcpy.GetMessages())
 except:
     e = sys.exc_info()[1]
     arcpy.AddMessage(e.args[0])
