@@ -11,11 +11,11 @@
 # Import modules
 import sys, string, os, arcgisscripting, tempfile, math
 
+class LicenseError(Exception):
+    pass
+
 # Geoprocessor object
 gp = arcgisscripting.create()
-
-# Check licenses
-gp.CheckOutExtension("spatial")
 
 PastaGIS = gp.GetInstallInfo("desktop")["InstallDir"]
 # Load toolboxes
@@ -28,7 +28,7 @@ GridEntrada = gp.GetParameterAsText(0)
 GridCellSizeX = gp.GetRasterProperties_management(GridEntrada, "CELLSIZEX")
 GridCellSizeY = gp.GetRasterProperties_management(GridEntrada, "CELLSIZEY")
 ConValor = long( gp.GetParameterAsText(1) )/ ( 100 * ( ( ( GridCellSizeX + GridCellSizeY ) / 2 ) / 30 ) )
-    
+
 EntradaDesc = gp.Describe(GridEntrada)
 EntradaSpacRef = EntradaDesc.SpatialReference
 
@@ -41,6 +41,16 @@ if not os.path.exists(dirtemp):
 gp.overwriteOutput = True
 
 try:
+
+    if gp.CheckExtension("spatial") == "Available":
+        gp.CheckOutExtension("spatial")
+    else:
+        raise LicenseError
+    if gp.CheckExtension("3D") == "Available":
+        gp.CheckOutExtension("3D")
+    else:
+        raise LicenseError
+
     if os.path.exists(dirtemp + "\\Merge"):
         txtfile = open(dirtemp + "\\Merge", 'r')
         readcon = txtfile.readline().replace("\n","")
@@ -54,11 +64,11 @@ try:
         # Generate Drainage Network
         gp.SetProgressor("step", "Generate drainage network...")
         StrErro = "Drainage network generation failed."
-        
+
         gp.SetProgressorPosition(0)
         gp.AddMessage("Processing Fill...")
-        SaidaFill = dirtemp + "//DrenFill"
-        gp.Fill_sa(GridEntrada, SaidaFill)
+        SaidaFill = dirtemp + "//DrenFill.tif"
+        gp.Fill_sa(GridEntrada, SaidaFill, "")
 
         gp.SetProgressorPosition(10)
         gp.AddMessage("Processing Flow Direction...")
@@ -120,21 +130,21 @@ try:
         del GridCodeList
 
         GridCodeAtual = MaxGridCode
-        
+
         gp.SetProgressor("default", "Processing River Merge...")
         gp.AddMessage("Merging drainage segments. This might be lengthy...")
         StrErro = "River merging failed."
         # Dissolve by MERGEID
         # Insert new fields in the attribute table
         gp.AddField_management(NomeDrenLayer, "MERGEID", "LONG")
-           
+
         gp.AddField_management(NomeDrenLayer, "OID_LINK", "LONG")
 
         gp.AddField_management(NomeDrenLayer, "LINK_OK", "SHORT")
-        
+
         CursorField = gp.UpdateCursor(NomeDrenLayer)
         LinhaField = CursorField.Next()
-        
+
         while LinhaField:
             LinhaField.MERGEID = -1
             LinhaField.OID_LINK = -1
@@ -171,7 +181,7 @@ try:
         MergeIDCount = 0
 
         ContinuarRodando = True
-        
+
         while ContinuarRodando == True:
             CursorFoco = gp.UpdateCursor(NomeDrenLayer)
             LinhaFoco = CursorFoco.Next()
@@ -192,7 +202,7 @@ try:
                     if EmEspera == False:
                         if LinhaFoco.MERGEID == -1:
                             LinhaFoco.MERGEID = MergeIDCount
-                            CursorFoco.UpdateRow(LinhaFoco) 
+                            CursorFoco.UpdateRow(LinhaFoco)
                             MergeIDCount += 1
 
                         # Search if there is a line with Tonode == FocusLine.Tonode
@@ -227,7 +237,7 @@ try:
                                     break
                                 del CursorSec, LinhaSec
                             LinhaFoco.LINK_OK = 1
-                            CursorFoco.UpdateRow(LinhaFoco) 
+                            CursorFoco.UpdateRow(LinhaFoco)
                 LinhaFoco = CursorFoco.Next()
             del CursorFoco, LinhaFoco
         DrenDissolve = NomeGDB + "\\DrenDissolve"
@@ -237,7 +247,7 @@ try:
         gp.SetProgressor("default", "Processing Interpolate Shape...")
         NomeDren3D = dirtemp + "\\TempGDB.gdb\\Dren3D"
         gp.interpolateshape_3d( GridEntrada, DrenDissolve, NomeDren3D )
-        
+
         txtfile = open(dirtemp + "\\Merge", 'w')
         txtfile.write(str(ConValor) + "\n" + GridEntrada)
         txtfile.close()
@@ -255,19 +265,19 @@ try:
     # Save the 3D drainage network file
     if gp.GetParameterAsText(5) == "true":
         gp.FeatureclassToFeatureclass_conversion( NomeDren3D, gp.GetParameterAsText(3), gp.GetParameterAsText(6) + ".shp" )
-    
+
     # Identify geometry field
     DescLayer = gp.Describe(NomeDren3D)
     CampoGeometria = DescLayer.ShapeFieldName
-        
+
     def Comprimento(LinhaPointer):
         Feature = LinhaPointer.GetValue(CampoGeometria)
         return Feature.Length
-        
-   
+
+
     gp.SetProgressor("default", "Processing RDE...")
     StrErro = "RDE index measuring failed."
-        
+
     gp.SetProgressorPosition(0)
     gp.AddMessage("Creating point layer...")
     ReferenciaEspacial = gp.CreateSpatialReference_management("", NomeDren3D, "", "", "", "", "0")
@@ -292,13 +302,13 @@ try:
                     # Add the coordinates of each vertex to the points list
                     ListaPontos.append([Vertice.X,Vertice.Y,Vertice.Z])
                 Vertice = Parte.Next()
-                
+
             ParteNum += 1
         return ListaPontos
 
     def Dist(x1,y1,x2,y2):
         return math.sqrt(math.pow(math.fabs(x1-x2),2)+math.pow(math.fabs(y1-y2),2))
-    
+
     ConstEquidistAltimetrica = int(gp.GetParameterAsText(2)) # Contour interval
     RDEs = 0
     RDEt = 0
@@ -309,15 +319,15 @@ try:
     XSegmento = 0
     YSegmento = 0
     CompSegmento = 0
-        
+
     gp.AddMessage("Calculating RDE indexes...") # Knickpoint Finder
-    
+
     CursorRDE = gp.SearchCursor(NomeDren3D)
     LinhaRDE = CursorRDE.Next()
 
     while LinhaRDE:
         ListVert = ObterListPont(LinhaRDE)
-        
+
         # Calculate RDEt -> RDEt = altimetric distance between the two ends / ln( river length )
         RDEt = (ListVert[0][2] - ListVert[-1][2]) / max(0.0001, math.log( Comprimento(LinhaRDE) ) )
         XAtual = ListVert[0][0]
@@ -330,9 +340,9 @@ try:
         PontoY = -1
         CompSegmento = 0
         ExtNascente = 0
-        
+
         ValorPixelMontante = ListVert[0][2]
-        
+
         v = 0
         while v < len(ListVert):
             if RDEt < 1:
@@ -374,7 +384,7 @@ try:
                 CompSegmento += Dist(ListVert[v][0],ListVert[v][1],ListVert[v-1][0],ListVert[v-1][1])
                 ExtNascente += Dist(ListVert[v][0],ListVert[v][1],ListVert[v-1][0],ListVert[v-1][1])
         LinhaRDE = CursorRDE.Next()
-        
+
     # OUTPUT
     gp.MakeFeatureLayer_management(gp.GetParameterAsText(3) + "\\" + gp.GetParameterAsText(4) + ".shp", gp.GetParameterAsText(4))
     gp.SetParameterAsText(7,gp.GetParameterAsText(3) + "\\" + gp.GetParameterAsText(4) + ".shp")
@@ -387,7 +397,9 @@ try:
 
     # Delete temporary folder
     gp.delete_management(dirtemp, "")
+except LicenseError:
+    gp.AddMessage("Spatial Analyst or 3D Analyst licenses not available. Make sure licenses are checked in Customize > Extensions...")
 except:
     e = sys.exc_info()[1]
-    arcpy.AddMessage(e.args[0])
+    gp.AddMessage(e.args[0])
     gp.AddError("Error! " + StrErro)
