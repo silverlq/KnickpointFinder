@@ -26,10 +26,10 @@ To run the tool, the user must first extract all the contents of the compressed 
 
 ## Outputs
 * **Knickpoints**: a shapefile containing points over the stream-slope anomalies. Each point has the following attributes:
- * **Stream gradient index of segment (SL)**: Based on Hack (1973).
- * **Total slope-extent relationship of drainage (SER)**: Based on Etchebehere (2004).
- * **Anomaly order (1st or 2nd)**: Based on Seeber & Gornitz (1983).
- * **SL/SER**: Useful for mapping and analysis.
+  * **Stream gradient index of segment (SL)**: Based on Hack (1973).
+  * **Total slope-extent relationship of drainage (SER)**: Based on Etchebehere (2004).
+  * **Anomaly order (1st or 2nd)**: Based on Seeber & Gornitz (1983).
+  * **SL/SER**: Useful for mapping and analysis.
 * **3D hierarchical drainage network**: optional output.
 
 
