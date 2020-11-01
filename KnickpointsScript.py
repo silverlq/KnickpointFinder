@@ -11,8 +11,8 @@
 # Import modules
 import sys, string, os, arcgisscripting, tempfile, math
 
-class LicenseError(Exception):
-    pass
+def LicenseError( extension ):
+    gp.AddWarning("WARNING: {} license not detected. Make sure license is available and checked in Customize > Extensions...".format(extension))
 
 # Geoprocessor object
 gp = arcgisscripting.create()
@@ -45,11 +45,11 @@ try:
     if gp.CheckExtension("spatial") == "Available":
         gp.CheckOutExtension("spatial")
     else:
-        raise LicenseError
+        LicenseError("spatial analyst")
     if gp.CheckExtension("3D") == "Available":
         gp.CheckOutExtension("3D")
     else:
-        raise LicenseError
+        LicenseError("3D analyst")
 
     if os.path.exists(dirtemp + "\\Merge"):
         txtfile = open(dirtemp + "\\Merge", 'r')
@@ -283,10 +283,10 @@ try:
     ReferenciaEspacial = gp.CreateSpatialReference_management("", NomeDren3D, "", "", "", "", "0")
     NomePontos = gp.GetParameterAsText(3) + "\\" + gp.GetParameterAsText(4) + ".shp"
     gp.CreateFeatureclass_management(gp.GetParameterAsText(3), gp.GetParameterAsText(4), "POINT", "", "DISABLED", "DISABLED", ReferenciaEspacial)
-    gp.AddField_management(NomePontos, "RDEt", "DOUBLE")
-    gp.AddField_management(NomePontos, "RDEs", "DOUBLE")
-    gp.AddField_management(NomePontos, "RDEsRDEt", "DOUBLE")
-    gp.AddField_management(NomePontos, "OrdemAnom", "SHORT")
+    gp.AddField_management(NomePontos, "SER", "DOUBLE")
+    gp.AddField_management(NomePontos, "SL", "DOUBLE")
+    gp.AddField_management(NomePontos, "SL_SER", "DOUBLE")
+    gp.AddField_management(NomePontos, "AnomalyOrd", "SHORT")
 
     def ObterListPont(Linha):
         Feature = Linha.GetValue(CampoGeometria)
@@ -310,8 +310,8 @@ try:
         return math.sqrt(math.pow(math.fabs(x1-x2),2)+math.pow(math.fabs(y1-y2),2))
 
     ConstEquidistAltimetrica = int(gp.GetParameterAsText(2)) # Contour interval
-    RDEs = 0
-    RDEt = 0
+    SL = 0 #AKA RDEs
+    SER = 0 #AKA RDEt
     XAtual = 0
     YAtual = 0
     XAnterior = 0
@@ -328,8 +328,8 @@ try:
     while LinhaRDE:
         ListVert = ObterListPont(LinhaRDE)
 
-        # Calculate RDEt -> RDEt = altimetric distance between the two ends / ln( river length )
-        RDEt = (ListVert[0][2] - ListVert[-1][2]) / max(0.0001, math.log( Comprimento(LinhaRDE) ) )
+        # Calculate SER -> SER = altimetric distance between the two ends / ln( river length )
+        SER = (ListVert[0][2] - ListVert[-1][2]) / max(0.0001, math.log( Comprimento(LinhaRDE) ) )
         XAtual = ListVert[0][0]
         YAtual = ListVert[0][1]
         XAnterior = ListVert[0][0]
@@ -345,16 +345,16 @@ try:
 
         v = 0
         while v < len(ListVert):
-            if RDEt < 1:
+            if SER < 1:
                 break
             if ValorPixelMontante - ListVert[v][2] >= ConstEquidistAltimetrica/2 and PontoX == -1 and PontoY == -1:
                 PontoX = ListVert[v][0]
                 PontoY = ListVert[v][1]
             if ValorPixelMontante - ListVert[v][2] >= ConstEquidistAltimetrica:
-                # Measure RDEs
-                RDEs = ((ValorPixelMontante - ListVert[v][2]) / (CompSegmento)) * (ExtNascente)
+                # Measure SL
+                SL = ((ValorPixelMontante - ListVert[v][2]) / (CompSegmento)) * (ExtNascente)
                 # Check if there is an anomaly
-                if RDEs / max(0.0001, RDEt) >= 2:
+                if SL / max(0.0001, SER) >= 2:
                     # Create anomaly point
                     CursorPontos = gp.InsertCursor(NomePontos)
                     LinhaPonto = CursorPontos.NewRow()
@@ -362,14 +362,14 @@ try:
                     Ponto.X = PontoX
                     Ponto.Y = PontoY
                     LinhaPonto.Shape = Ponto
-                    LinhaPonto.RDEs = RDEs
-                    LinhaPonto.RDEt = RDEt
-                    LinhaPonto.RDEsRDEt = RDEs/max(0.0001,RDEt)
-                    if RDEs / max(0.0001, RDEt) >= 2:
-                        if RDEs / max(0.0001, RDEt) >= 10:
-                            LinhaPonto.OrdemAnom = 1
+                    LinhaPonto.SL = SL
+                    LinhaPonto.SER = SER
+                    LinhaPonto.SL_SER = SL/max(0.0001,SER)
+                    if SL / max(0.0001, SER) >= 2:
+                        if SL / max(0.0001, SER) >= 10:
+                            LinhaPonto.AnomalyOrd = 1
                         else:
-                            LinhaPonto.OrdemAnom = 2
+                            LinhaPonto.AnomalyOrd = 2
                     CursorPontos.InsertRow(LinhaPonto)
 
                     del CursorPontos, LinhaPonto
@@ -397,8 +397,6 @@ try:
 
     # Delete temporary folder
     gp.delete_management(dirtemp, "")
-except LicenseError:
-    gp.AddMessage("Spatial Analyst or 3D Analyst licenses not available. Make sure licenses are checked in Customize > Extensions...")
 except:
     e = sys.exc_info()[1]
     gp.AddMessage(e.args[0])
