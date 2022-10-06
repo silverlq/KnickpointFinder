@@ -17,17 +17,17 @@ def LicenseError( extension ):
 # Geoprocessor object
 gp = arcgisscripting.create()
 
-PastaGIS = gp.GetInstallInfo("desktop")["InstallDir"]
+PastaGIS = gp.GetInstallInfo()["InstallDir"]
 # Load toolboxes
-gp.AddToolbox(PastaGIS + "/ArcToolbox/Toolboxes/Spatial Analyst Tools.tbx")
-gp.AddToolbox(PastaGIS + "/ArcToolbox/Toolboxes/Conversion Tools.tbx")
-gp.AddToolbox(PastaGIS + "/ArcToolbox/Toolboxes/Data Management Tools.tbx")
+gp.AddToolbox(PastaGIS + "Resources/ArcToolBox/Toolboxes/Spatial Analyst Tools.tbx")
+gp.AddToolbox(PastaGIS + "Resources/ArcToolBox/Toolboxes/Conversion Tools.tbx")
+gp.AddToolbox(PastaGIS + "Resources/ArcToolBox/Toolboxes/Data Management Tools.tbx")
 
 # Digital Elevation Model and other input
 GridEntrada = gp.GetParameterAsText(0)
 GridCellSizeX = gp.GetRasterProperties_management(GridEntrada, "CELLSIZEX")
 GridCellSizeY = gp.GetRasterProperties_management(GridEntrada, "CELLSIZEY")
-ConValor = long( gp.GetParameterAsText(1) )/ ( 100 * ( ( ( GridCellSizeX + GridCellSizeY ) / 2 ) / 30 ) )
+ConValor = int( gp.GetParameterAsText(1) )/ ( 100 * ( ( ( GridCellSizeX + GridCellSizeY ) / 2 ) / 30 ) )
 
 EntradaDesc = gp.Describe(GridEntrada)
 EntradaSpacRef = EntradaDesc.SpatialReference
